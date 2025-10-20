@@ -69,7 +69,7 @@ lib.addCommand('setgz', {
     local playerName = Framework.GetPlayerName(Player)
 
     if hasActiveZone(identifier) then
-        lib.notify(src, {
+        TriggerClientEvent('ox_lib:notify', src, {
             title = 'Admin Zone',
             description = 'You already have an active zone! Clear it before creating another.',
             type = 'error'
@@ -97,13 +97,13 @@ lib.addCommand('cleargz', {
     if removeZoneByIdentifier(identifier) then
         sendToDiscord("CLEAR ADMIN ZONE", playerName .. " removed their admin zone")
         TriggerClientEvent("adminzone:UpdateZones", -1, zones)
-        lib.notify(src, {
+        TriggerClientEvent('ox_lib:notify', src, {
             title = 'Admin Zone',
             description = 'Your admin zone has been cleared',
             type = 'success'
         })
     else
-        lib.notify(src, {
+        TriggerClientEvent('ox_lib:notify', src, {
             title = 'Admin Zone',
             description = 'You don\'t have an active zone',
             type = 'error'
@@ -144,7 +144,7 @@ RegisterNetEvent('adminzone:sendCoords', function(command, coords)
             coord = coords
         }
         TriggerClientEvent("adminzone:UpdateZones", -1, zones)
-        lib.notify(src, {
+        TriggerClientEvent('ox_lib:notify', src, {
             title = 'Admin Zone',
             description = 'Admin zone created successfully',
             type = 'success'
