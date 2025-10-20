@@ -31,7 +31,7 @@ if Config.Framework == 'qb' then
 
 elseif Config.Framework == 'esx' then
     -- ESX Framework
-    local ESX = exports['es_extended']:getSharedObject()
+    ESX = exports['es_extended']:getSharedObject()
 
     function Framework.GetPlayer(source)
         return ESX.GetPlayerFromId(source)
