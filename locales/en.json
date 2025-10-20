@@ -1,0 +1,15 @@
+{
+  "command_setgz": "Create a temporary admin zone at your location",
+  "command_cleargz": "Clear your temporary admin zone",
+  "zone_already_active": "You already have an active zone! Clear it before creating another.",
+  "zone_created": "Admin zone created successfully",
+  "zone_cleared": "Your admin zone has been cleared",
+  "zone_no_active": "You don't have an active zone",
+  "zone_entered": "You have entered an admin zone",
+  "zone_exited": "You have exited the admin zone",
+  "zone_all_cleared": "All admin zones have been cleared",
+  "zone_warning": "WARNING: You are in an ADMIN ZONE\\nNo RP, No Speeding, No Violence",
+  "speed_limit_active": "Speed limited to %s MPH in this zone",
+  "webhook_add": "%s has set a temporary admin zone",
+  "webhook_clear": "%s removed their admin zone"
+}
