@@ -4,7 +4,7 @@ Config = {}
 Config.Framework = 'qb' -- Change to 'esx' to use ESX framework
 
 -- Admin groups/permissions
-Config.AdminGroups = {"admin", "god"}
+Config.AdminGroups = {"admin", "god", "superadmin"}
 
 -- Zone Settings
 Config.DisableViolence = true -- Disable shooting/melee in admin zones
