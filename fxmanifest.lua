@@ -1,10 +1,29 @@
 fx_version 'cerulean'
-games { 'gta5' }
+game 'gta5'
 
-author ''
-description 'Admin Zone'
-version '1.0.0'
+author 'donk'
+description 'Admin Zones - Remade with ox_lib and dual framework support'
+version '2.0.0'
+lua54 'yes'
 
-shared_scripts {'@qb-core/shared/locale.lua', 'locales/en.lua', 'config.lua',}
-client_scripts {'client/main.lua',}
-server_scripts {'server/main.lua', 'server/update.lua',}
+shared_scripts {
+    '@ox_lib/init.lua',
+    'config.lua',
+}
+
+client_scripts {
+    'client/main.lua'
+}
+
+server_scripts {
+    'bridge.lua',
+    'server/main.lua'
+}
+
+files {
+    'locales/*.json'
+}
+
+dependencies {
+    'ox_lib'
+}

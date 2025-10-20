@@ -1,87 +1,158 @@
-local QBCore = exports['qb-core']:GetCoreObject()
 local zones = {}
 
+-- Send log to Discord webhook
 local function sendToDiscord(title, message)
-	if Config.UseWebHook then
-		if Config.Webhook == "" then
-			print("you have no webhook, create one on discord [https://discord.com/developers/applications] and place this in the config.lua (Config.Webhook)")
-		else
-			if message == nil or message == '' then return end
-			LogArray = {
-				{
-					["color"] = "16711680",
-					["title"] = "TEMPORARY ADMIN ZONE",
-					["description"] = "Time: **"..os.date('%Y-%m-%d %H:%M:%S').."**",
-					["fields"] = {
-						{
-							["name"] = "Message",
-							["value"] = message
-						}
-					},
-					["footer"] = {
-						["text"] = "qb-adminzones re-edit by MaDHouSe",
-						["icon_url"] = "https://icons.iconarchive.com/icons/iconarchive/red-orb-alphabet/128/Letter-M-icon.png",
-					}
-				}
-			}
-			PerformHttpRequest(Config.Webhook , function(err, text, headers) end, 'POST', json.encode({username = "Admin Zone", embeds = LogArray}), { ['Content-Type'] = 'application/json' })
-		end
-	end
+    if not Config.UseWebhook or not Config.Webhook or Config.Webhook == "" then
+        return
+    end
+
+    if not message or message == '' then return end
+
+    local embed = {
+        {
+            ["color"] = Config.WebhookColor,
+            ["title"] = "TEMPORARY ADMIN ZONE",
+            ["description"] = ("Time: **%s**"):format(os.date('%Y-%m-%d %H:%M:%S')),
+            ["fields"] = {
+                {
+                    ["name"] = "Message",
+                    ["value"] = message
+                }
+            },
+            ["footer"] = {
+                ["text"] = "Admin Zone System",
+                ["icon_url"] = "https://icons.iconarchive.com/icons/iconarchive/red-orb-alphabet/128/Letter-A-icon.png",
+            }
+        }
+    }
+
+    PerformHttpRequest(Config.Webhook, function(err, text, headers) end, 'POST', json.encode({
+        username = "Admin Zone",
+        embeds = embed
+    }), {
+        ['Content-Type'] = 'application/json'
+    })
 end
 
-QBCore.Commands.Add("setzone", Lang:t("chat.addzone"), {}, false, function(source)
-	local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local zone = false
-    for i, j in pairs(zones) do
-        if j.license == Player.PlayerData.license then
-            zone = true
+-- Check if player has an active zone
+local function hasActiveZone(identifier)
+    for i, zone in pairs(zones) do
+        if zone.identifier == identifier then
+            return true
         end
     end
-	if not zone then
-		sendToDiscord("ADD ADMIN ZONE", Player.PlayerData.charinfo.firstname .. " has set a temporary admin zone")
-    	TriggerClientEvent("adminzone:getCoords", src, "setzone")
-	end
-end, "admin")
+    return false
+end
 
+-- Remove zone by identifier
+local function removeZoneByIdentifier(identifier)
+    for i, zone in pairs(zones) do
+        if zone.identifier == identifier then
+            table.remove(zones, i)
+            return true
+        end
+    end
+    return false
+end
 
-QBCore.Commands.Add("clearzone", Lang:t("commandTxt.clearzoneComand"), {}, false, function(source)
-	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
-	for i, j in pairs(zones) do
-		if j.license == Player.PlayerData.license then
-			zones[i] = nil
-		end
-	end
-	sendToDiscord("CLEAR ADMIN ZONE", Player.PlayerData.charinfo.firstname .. " remove the admin zone")
-	TriggerClientEvent("adminzone:UpdateZones", -1, zones)
-end, "admin")
+-- Set Admin Zone Command
+lib.addCommand('setgz', {
+    help = 'Create a temporary admin zone at your location',
+    restricted = 'group.admin'
+}, function(source, args, raw)
+    local src = source
+    local Player = Framework.GetPlayer(src)
 
-AddEventHandler('playerDropped', function (reason)
-	local src = source
-	if QBCore.Players[src] then
-		local Player = QBCore.Functions.GetPlayer(src)
-		for i, j in pairs(zones) do
-			if j.license == Player.PlayerData.license then
-				zones[i] = nil
-			end
-		end
+    if not Player then return end
+
+    local identifier = Framework.GetPlayerIdentifier(Player)
+    local playerName = Framework.GetPlayerName(Player)
+
+    if hasActiveZone(identifier) then
+        lib.notify(src, {
+            title = 'Admin Zone',
+            description = 'You already have an active zone! Clear it before creating another.',
+            type = 'error'
+        })
+        return
+    end
+
+    sendToDiscord("ADD ADMIN ZONE", playerName .. " has set a temporary admin zone")
+    TriggerClientEvent("adminzone:getCoords", src, "setzone")
+end)
+
+-- Clear Admin Zone Command
+lib.addCommand('cleargz', {
+    help = 'Clear your temporary admin zone',
+    restricted = 'group.admin'
+}, function(source, args, raw)
+    local src = source
+    local Player = Framework.GetPlayer(src)
+
+    if not Player then return end
+
+    local identifier = Framework.GetPlayerIdentifier(Player)
+    local playerName = Framework.GetPlayerName(Player)
+
+    if removeZoneByIdentifier(identifier) then
+        sendToDiscord("CLEAR ADMIN ZONE", playerName .. " removed their admin zone")
+        TriggerClientEvent("adminzone:UpdateZones", -1, zones)
+        lib.notify(src, {
+            title = 'Admin Zone',
+            description = 'Your admin zone has been cleared',
+            type = 'success'
+        })
+    else
+        lib.notify(src, {
+            title = 'Admin Zone',
+            description = 'You don\'t have an active zone',
+            type = 'error'
+        })
     end
 end)
 
-RegisterNetEvent('adminzone:sendCoords')
-AddEventHandler('adminzone:sendCoords', function(command, coords)
-	local src = source
-	local Player = QBCore.Functions.GetPlayer(src)
-	if IsPlayerAceAllowed(src, 'admin') or IsPlayerAceAllowed(src, 'god') or IsPlayerAceAllowed(src, 'command') then
-	    if command == 'setzone' then
-	        zones[#zones+1] = {license = Player.PlayerData.license, coord = coords}
-		TriggerClientEvent("adminzone:UpdateZones", -1, zones)
-	    end
-	end
+-- Handle player disconnect - remove their zones
+AddEventHandler('playerDropped', function(reason)
+    local src = source
+    local Player = Framework.GetPlayer(src)
+
+    if Player then
+        local identifier = Framework.GetPlayerIdentifier(Player)
+        if removeZoneByIdentifier(identifier) then
+            TriggerClientEvent("adminzone:UpdateZones", -1, zones)
+        end
+    end
 end)
 
-RegisterNetEvent('adminzone:ServerUpdateZone')
-AddEventHandler('adminzone:ServerUpdateZone', function()
-	TriggerClientEvent('adminzone:UpdateZones', source, zones)
+-- Receive coordinates from client and create zone
+RegisterNetEvent('adminzone:sendCoords', function(command, coords)
+    local src = source
+    local Player = Framework.GetPlayer(src)
+
+    if not Player then return end
+
+    -- Double-check permissions
+    if not Framework.HasPermission(src, 'admin') then
+        return
+    end
+
+    local identifier = Framework.GetPlayerIdentifier(Player)
+
+    if command == 'setzone' then
+        zones[#zones + 1] = {
+            identifier = identifier,
+            coord = coords
+        }
+        TriggerClientEvent("adminzone:UpdateZones", -1, zones)
+        lib.notify(src, {
+            title = 'Admin Zone',
+            description = 'Admin zone created successfully',
+            type = 'success'
+        })
+    end
+end)
+
+-- Send zones to player on request
+RegisterNetEvent('adminzone:ServerUpdateZone', function()
+    TriggerClientEvent('adminzone:UpdateZones', source, zones)
 end)
