@@ -1,6 +1,5 @@
 local zones = {}
 
--- Send log to Discord webhook
 local function sendToDiscord(title, message)
     if not Config.UseWebhook or not Config.Webhook or Config.Webhook == "" then
         return
@@ -34,7 +33,6 @@ local function sendToDiscord(title, message)
     })
 end
 
--- Check if player has an active zone
 local function hasActiveZone(identifier)
     for i, zone in pairs(zones) do
         if zone.identifier == identifier then
@@ -44,7 +42,6 @@ local function hasActiveZone(identifier)
     return false
 end
 
--- Remove zone by identifier
 local function removeZoneByIdentifier(identifier)
     for i, zone in pairs(zones) do
         if zone.identifier == identifier then
@@ -55,7 +52,6 @@ local function removeZoneByIdentifier(identifier)
     return false
 end
 
--- Set Admin Zone Command
 lib.addCommand('setgz', {
     help = 'Create a temporary admin zone at your location',
     restricted = 'group.admin'
@@ -81,7 +77,6 @@ lib.addCommand('setgz', {
     TriggerClientEvent("adminzone:getCoords", src, "setzone")
 end)
 
--- Clear Admin Zone Command
 lib.addCommand('cleargz', {
     help = 'Clear your temporary admin zone',
     restricted = 'group.admin'
@@ -111,7 +106,6 @@ lib.addCommand('cleargz', {
     end
 end)
 
--- Handle player disconnect - remove their zones
 AddEventHandler('playerDropped', function(reason)
     local src = source
     local Player = Framework.GetPlayer(src)
@@ -124,14 +118,12 @@ AddEventHandler('playerDropped', function(reason)
     end
 end)
 
--- Receive coordinates from client and create zone
 RegisterNetEvent('adminzone:sendCoords', function(command, coords)
     local src = source
     local Player = Framework.GetPlayer(src)
 
     if not Player then return end
 
-    -- Double-check permissions
     if not Framework.HasPermission(src, 'admin') then
         return
     end
@@ -152,7 +144,6 @@ RegisterNetEvent('adminzone:sendCoords', function(command, coords)
     end
 end)
 
--- Send zones to player on request
 RegisterNetEvent('adminzone:ServerUpdateZone', function()
     TriggerClientEvent('adminzone:UpdateZones', source, zones)
 end)

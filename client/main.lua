@@ -5,12 +5,10 @@ local currentBlip = nil
 local currentRadiusBlip = nil
 local speedLimitActive = false
 
--- Helper function to round numbers
 local function round(num, numDecimalPlaces)
     return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
 
--- Create blips for a zone
 local function createZoneBlips(coords)
     if currentBlip then
         RemoveBlip(currentBlip)
@@ -34,7 +32,6 @@ local function createZoneBlips(coords)
     SetBlipColour(currentRadiusBlip, Config.BlipColor)
 end
 
--- Remove zone blips
 local function removeZoneBlips()
     if currentBlip then
         RemoveBlip(currentBlip)
@@ -46,7 +43,6 @@ local function removeZoneBlips()
     end
 end
 
--- Enter admin zone
 local function enterZone(coords)
     if inZone then return end
 
@@ -65,7 +61,6 @@ local function enterZone(coords)
     })
 end
 
--- Exit admin zone
 local function exitZone()
     if not inZone then return end
 
@@ -80,7 +75,6 @@ local function exitZone()
     })
 end
 
--- Check if player is in any zone
 local function checkZoneProximity()
     local playerPed = PlayerPedId()
     local playerCoords = GetEntityCoords(playerPed)
@@ -102,7 +96,6 @@ local function checkZoneProximity()
     end
 end
 
--- Handle violence restrictions
 CreateThread(function()
     while true do
         Wait(0)
@@ -110,19 +103,18 @@ CreateThread(function()
             local playerPed = PlayerPedId()
             SetPlayerCanDoDriveBy(playerPed, false)
             DisablePlayerFiring(playerPed, true)
-            DisableControlAction(0, 140, true) -- Melee attack (R)
-            DisableControlAction(0, 141, true) -- Melee attack 2
-            DisableControlAction(0, 142, true) -- Melee attack 3
-            DisableControlAction(0, 257, true) -- Attack
-            DisableControlAction(0, 263, true) -- Melee attack
-            DisableControlAction(0, 264, true) -- Melee attack 2
+            DisableControlAction(0, 140, true)
+            DisableControlAction(0, 141, true)
+            DisableControlAction(0, 142, true)
+            DisableControlAction(0, 257, true)
+            DisableControlAction(0, 263, true)
+            DisableControlAction(0, 264, true)
         else
             Wait(500)
         end
     end
 end)
 
--- Handle speed limits in zones
 CreateThread(function()
     while true do
         Wait(500)
@@ -133,7 +125,6 @@ CreateThread(function()
             local playerCoords = GetEntityCoords(playerPed)
             local needSpeedLimit = false
 
-            -- Check if we're in any zone
             for _, zone in pairs(zones) do
                 if #(playerCoords - zone.coord) < Config.ZoneCheckDistance then
                     needSpeedLimit = true
@@ -142,7 +133,7 @@ CreateThread(function()
             end
 
             if needSpeedLimit then
-                local maxSpeedMPS = Config.MaxSpeed / 2.237 -- Convert MPH to meters per second
+                local maxSpeedMPS = Config.MaxSpeed / 2.237
                 SetEntityMaxSpeed(vehicle, maxSpeedMPS)
 
                 if not speedLimitActive then
@@ -155,7 +146,7 @@ CreateThread(function()
                 end
             else
                 if speedLimitActive then
-                    SetEntityMaxSpeed(vehicle, 999.0) -- Reset to default
+                    SetEntityMaxSpeed(vehicle, 999.0)
                     speedLimitActive = false
                 end
             end
@@ -167,7 +158,6 @@ CreateThread(function()
     end
 end)
 
--- Main zone checking thread
 CreateThread(function()
     while true do
         Wait(1000)
@@ -177,11 +167,9 @@ CreateThread(function()
     end
 end)
 
--- Update zones from server
 RegisterNetEvent('adminzone:UpdateZones', function(zoneTable)
     zones = zoneTable
 
-    -- If we were in a zone that no longer exists, exit it
     if inZone then
         local stillInZone = false
         local playerCoords = GetEntityCoords(PlayerPedId())
@@ -198,7 +186,6 @@ RegisterNetEvent('adminzone:UpdateZones', function(zoneTable)
         end
     end
 
-    -- If all zones cleared, show notification
     if #zones == 0 and inZone then
         lib.notify({
             title = 'Admin Zone',
@@ -209,12 +196,10 @@ RegisterNetEvent('adminzone:UpdateZones', function(zoneTable)
     end
 end)
 
--- Get player coords for setting zone
 RegisterNetEvent('adminzone:getCoords', function(command)
     TriggerServerEvent('adminzone:sendCoords', command, GetEntityCoords(PlayerPedId()))
 end)
 
--- Request zones on player loaded
 if Config.Framework == 'qb' then
     RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
         TriggerServerEvent('adminzone:ServerUpdateZone')
@@ -225,7 +210,6 @@ elseif Config.Framework == 'esx' then
     end)
 end
 
--- Request zones on resource start
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() == resourceName then
         Wait(1000)
