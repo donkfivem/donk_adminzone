@@ -1,7 +1,7 @@
 Config = {}
 
 -- Framework Selection: 'qb' or 'esx'
-Config.Framework = 'qb' -- Change to 'esx' to use ESX framework
+Config.Framework = 'esx' -- Change to 'esx' to use ESX framework
 
 -- Admin groups/permissions
 Config.AdminGroups = {"admin", "god", "superadmin"}

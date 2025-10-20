@@ -53,13 +53,14 @@ local function enterZone(coords)
     inZone = true
     createZoneBlips(coords)
 
-    lib.showTextUI('~r~WARNING: ~y~You are in an ADMIN ZONE~n~~w~No RP, No Speeding, No Violence', {
+    lib.showTextUI('[!] You are in an **ADMIN ZONE**  \nNo RP | No Speeding | No Violence', {
         position = "top-center",
         icon = 'shield-halved',
+        iconColor = '#F59E0B',
         style = {
-            borderRadius = 5,
-            backgroundColor = '#48BB78',
-            color = 'white'
+            borderRadius = 8,
+            backgroundColor = '#DC2626',
+            color = '#FFFFFF'
         }
     })
 end
